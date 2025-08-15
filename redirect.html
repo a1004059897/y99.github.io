@@ -16,10 +16,10 @@ small{color:#666;}
 <body>
 
 <h2 id="title">正在处理...</h2>
-<p id="desc">请稍候</p>
+<p id="desc">请点击下方按钮在浏览器打开</p>
 
 <div id="panel">
-  <a id="openBtn" class="btn" target="_blank" rel="noopener noreferrer">在浏览器中打开</a>
+  <a id="chromeBtn" class="btn">用 Chrome 打开</a>
   <button id="copyBtn" class="btn">复制链接</button>
   <p>目标链接：<code id="urlBox"></code></p>
   <p>或长按识别二维码：</p>
@@ -34,7 +34,7 @@ const desc=document.getElementById('desc');
 const panel=document.getElementById('panel');
 const urlBox=document.getElementById('urlBox');
 const qrcode=document.getElementById('qrcode');
-const openBtn=document.getElementById('openBtn');
+const chromeBtn=document.getElementById('chromeBtn');
 const copyBtn=document.getElementById('copyBtn');
 const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
 
@@ -42,40 +42,25 @@ if(!target){
     title.textContent='未指定跳转目标';
     desc.textContent='缺少参数 t。';
 }else{
-    urlBox.textContent=target;
-    qrcode.innerHTML=`<img width="220" height="220" alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(target)}">`;
-    openBtn.href=target;
+    urlBox.textContent = target;
+    qrcode.innerHTML = `<img width="220" height="220" alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(target)}">`;
+
+    // Chrome scheme URL
+    let chromeUrl = target.replace(/^https?:\/\//i,'googlechrome://');
+    chromeBtn.href = chromeUrl;
 
     copyBtn.onclick = async () => {
-        try{await navigator.clipboard.writeText(target); copyBtn.textContent='已复制'; setTimeout(()=>copyBtn.textContent='复制链接',1200);} 
+        try{await navigator.clipboard.writeText(target); copyBtn.textContent='已复制'; setTimeout(()=>copyBtn.textContent='复制链接',1200);}
         catch{alert('复制失败，请手动长按复制');}
     };
 
-    if(isWeChat){
-        title.textContent='微信检测中…';
-        desc.textContent='尝试触发浏览器打开弹窗';
-        // 安卓微信可尝试伪装.apk触发“浏览器打开”
-        const a=document.createElement('a');
-        a.href=target;
-        a.download='file.apk';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        // 延迟展示备用操作面板
-        setTimeout(()=>{
-            title.textContent='如未弹出提示，请使用下方操作';
-            desc.textContent='';
-            panel.style.display='block';
-        },1500);
-    }else{
-        // 非微信环境直接跳转
-        title.textContent='即将跳转';
-        desc.textContent='如未自动跳转，请使用下方按钮';
-        panel.style.display='block';
+    panel.style.display='block';
+
+    if(!isWeChat){
+        // 非微信直接跳转
         setTimeout(()=>{window.location.href=target;},500);
     }
 }
 </script>
-
 </body>
 </html>
