@@ -2,35 +2,35 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>跳转链接生成器（Chrome Scheme）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跳转链接生成器</title>
 <style>
-body { font-family: Arial, sans-serif; max-width:720px; margin:auto; padding:24px; line-height:1.6 }
-input,button{width:100%;padding:10px;margin:6px 0;font-size:16px;border-radius:8px;border:1px solid #ccc;box-sizing:border-box;}
-button{border:none;background:#4CAF50;color:#fff;cursor:pointer;}
-button.secondary{background:#2196F3;}
-.row{display:flex;gap:10px;margin-top:10px;}
-code{display:block;background:#f6f8fa;padding:10px;border-radius:8px;word-break:break-all;margin-top:8px;}
+body { font-family: "Segoe UI", sans-serif; background:#f5f6fa; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh;}
+.container { background:white; padding:30px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width:480px; text-align:center;}
+h1 { font-size:1.6em; margin-bottom:20px; color:#333; }
+input { width:100%; padding:12px 14px; margin:8px 0 16px; font-size:16px; border-radius:8px; border:1px solid #ccc; box-sizing:border-box;}
+button { width:48%; padding:12px; font-size:16px; border:none; border-radius:8px; margin:4px 1%; cursor:pointer; }
+button.primary { background:#4CAF50; color:white; }
+button.secondary { background:#2196F3; color:white; }
+.code-box { background:#f0f0f0; padding:10px 12px; border-radius:8px; word-break:break-all; margin-top:12px; display:none;}
 </style>
 </head>
 <body>
-<h2>跳转链接生成器（Chrome Scheme）</h2>
-<p>输入你要跳转的链接（长网址/短链接/自定义 scheme 都可）：</p>
-<input type="text" id="inputUrl" placeholder="例如：https://example.com 或 alipays://..." />
-
-<div class="row">
-  <button id="genBtn">生成跳转链接</button>
-  <button id="clearBtn" class="secondary">清空</button>
-</div>
-
-<div id="out" style="display:none;">
-  <p>生成结果：</p>
-  <code id="finalLink"></code>
-  <div class="row">
-    <button id="copyBtn">一键复制</button>
-    <a id="testA" target="_blank" style="text-decoration:none"><button class="secondary" type="button">新窗口测试</button></a>
-  </div>
-  <p><small>链接形如：<code>https://scy99527.github.io/redirect.html?t=...</code></small></p>
+<div class="container">
+    <h1>跳转链接生成器</h1>
+    <input type="text" id="inputUrl" placeholder="请输入完整链接或短链接">
+    <div>
+        <button class="primary" id="genBtn">生成跳转链接</button>
+        <button class="secondary" id="clearBtn">清空</button>
+    </div>
+    <div class="code-box" id="out">
+        <p>生成链接：</p>
+        <code id="finalLink"></code>
+        <div style="margin-top:10px;">
+            <button id="copyBtn" class="primary">一键复制</button>
+            <a id="testA" target="_blank"><button class="secondary">新窗口测试</button></a>
+        </div>
+    </div>
 </div>
 
 <script>
