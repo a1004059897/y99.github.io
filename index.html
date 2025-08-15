@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微信自动弹窗跳转方案</title>
+    <title>微信自动弹窗跳转方案 - 修复版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
@@ -80,7 +80,7 @@
         }
         
         .header h1 {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             margin-bottom: 15px;
             letter-spacing: 1px;
             position: relative;
@@ -88,7 +88,7 @@
         }
         
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
             max-width: 700px;
             margin: 0 auto;
@@ -212,20 +212,6 @@
         .url-display i {
             margin-right: 10px;
             color: var(--accent);
-        }
-        
-        .countdown {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--warning);
-            margin: 25px 0;
-            background: rgba(247, 37, 133, 0.1);
-            padding: 20px 35px;
-            border-radius: 15px;
-            display: inline-block;
-            min-width: 220px;
-            border: 2px dashed var(--warning);
-            box-shadow: 0 5px 15px rgba(247, 37, 133, 0.2);
         }
         
         .qr-section {
@@ -411,11 +397,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .countdown {
-                font-size: 2rem;
-                padding: 15px 25px;
-            }
-            
             .btn {
                 padding: 14px 35px;
                 font-size: 1.2rem;
@@ -432,85 +413,54 @@
             100% { transform: scale(1); }
         }
         
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
-        
-        @keyframes floating {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .wechat-popup {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            padding: 20px;
-            width: 300px;
-            z-index: 1000;
-            transform: translateY(150%);
-            transition: transform 0.5s ease;
-        }
-        
-        .wechat-popup.visible {
-            transform: translateY(0);
-        }
-        
-        .popup-header {
+        .status-bar {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            background: #f0f8ff;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent);
         }
         
-        .popup-icon {
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1a2980;
+        }
+        
+        .status-icon {
             width: 40px;
             height: 40px;
-            background: var(--wechat-green);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .status-icon.ok {
+            background-color: var(--wechat-green);
             color: white;
-            font-size: 1.2rem;
         }
         
-        .popup-title {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .popup-content {
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        
-        .popup-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .popup-btn {
-            padding: 8px 20px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .popup-cancel {
-            background: #f0f0f0;
-            color: #666;
-        }
-        
-        .popup-confirm {
-            background: var(--wechat-green);
-            color: white;
+        .status-icon.warn {
+            background-color: #ffd43b;
+            color: #7e5109;
         }
     </style>
 </head>
@@ -518,7 +468,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fab fa-weixin"></i> 微信自动弹窗跳转方案</h1>
-            <p>利用微信内置弹窗机制，实现一键跳转浏览器</p>
+            <p>修复版 - 确保在微信环境中正确触发下载提示</p>
         </div>
         
         <div class="content">
@@ -534,18 +484,42 @@
                 </div>
                 
                 <div class="card-content">
-                    <p>本方案利用微信安卓版不支持下载功能的特点，当页面加载时自动执行下载函数，触发微信内置的"在浏览器中打开"提示。</p>
+                    <div class="status-bar">
+                        <div class="status-item">
+                            <div class="status-icon ok" id="wechatStatusIcon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="status-label">微信环境</div>
+                            <div class="status-value" id="wechatStatus">检测中...</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-icon" id="triggerStatusIcon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="status-label">弹窗状态</div>
+                            <div class="status-value" id="triggerStatus">等待触发</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-icon" id="redirectStatusIcon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="status-label">跳转状态</div>
+                            <div class="status-value" id="redirectStatus">等待中</div>
+                        </div>
+                    </div>
                     
                     <div class="url-display">
                         <i class="fas fa-external-link-alt"></i>
                         <span id="targetUrl">正在解析目标链接...</span>
                     </div>
                     
-                    <div class="countdown" id="countdown">3</div>
+                    <div class="warning">
+                        <h3><i class="fas fa-info-circle"></i> 重要说明</h3>
+                        <p>本方案修复了自动触发问题，确保在微信环境中正确触发下载提示。如果您的设备没有自动触发，请点击下方按钮手动触发。</p>
+                    </div>
                     
-                    <p>系统将在 <strong id="countdownValue">3</strong> 秒后自动触发微信弹窗</p>
                     <button class="btn pulse" id="triggerBtn">
-                        <i class="fas fa-bolt"></i> 立即触发微信弹窗
+                        <i class="fas fa-bolt"></i> 手动触发微信弹窗
                     </button>
                 </div>
                 
@@ -560,18 +534,13 @@
                         <h3><i class="fas fa-cogs"></i> 技术原理</h3>
                         <ol>
                             <li>页面加载时创建虚拟下载链接</li>
+                            <li>使用 application/octet-stream MIME 类型</li>
                             <li>触发微信内置下载功能</li>
-                            <li>微信安卓版不支持下载</li>
+                            <li>微信安卓版不支持此下载类型</li>
                             <li>自动弹出"在浏览器中打开"提示</li>
                             <li>用户点击"允许"后跳转至浏览器</li>
-                            <li>在浏览器中打开目标链接</li>
                         </ol>
                     </div>
-                </div>
-                
-                <div class="warning">
-                    <h3><i class="fas fa-info-circle"></i> 注意事项</h3>
-                    <p>该方案在微信安卓版中效果最佳，iOS版微信可能会直接下载文件。如未自动触发弹窗，请手动点击上方按钮。</p>
                 </div>
             </div>
             
@@ -581,79 +550,93 @@
                         <i class="fas fa-mobile-alt"></i>
                     </div>
                     <div class="card-title">
-                        备选跳转方案
-                        <small>确保在各种环境下都能成功跳转</small>
+                        环境适配说明
+                        <small>不同设备的处理方式</small>
                     </div>
                 </div>
                 
                 <div class="solution-section">
                     <div class="solution-card">
                         <div class="solution-icon">
-                            <i class="fas fa-share-square"></i>
+                            <i class="fab fa-android"></i>
                         </div>
-                        <h3 class="solution-title">分享跳转</h3>
-                        <p class="solution-desc">将链接分享到其他应用打开</p>
-                        <button class="btn" id="shareBtn" style="background: linear-gradient(to right, #4361ee, #3f37c9);">
-                            <i class="fas fa-share"></i> 分享链接
-                        </button>
+                        <h3 class="solution-title">安卓微信</h3>
+                        <p class="solution-desc">自动触发微信提示，点击"允许"后在浏览器中打开目标链接</p>
+                        <div class="status-value" id="androidStatus">支持</div>
                     </div>
                     
                     <div class="solution-card">
                         <div class="solution-icon">
-                            <i class="fas fa-qrcode"></i>
+                            <i class="fab fa-apple"></i>
                         </div>
-                        <h3 class="solution-title">扫码打开</h3>
-                        <p class="solution-desc">使用系统相机扫描二维码</p>
-                        <button class="btn" id="saveQrBtn" style="background: linear-gradient(to right, #f72585, #b5179e);">
-                            <i class="fas fa-download"></i> 保存二维码
-                        </button>
+                        <h3 class="solution-title">iOS微信</h3>
+                        <p class="solution-desc">可能会直接下载文件，建议使用二维码或手动跳转</p>
+                        <div class="status-value" id="iosStatus">部分支持</div>
                     </div>
                     
                     <div class="solution-card">
                         <div class="solution-icon">
-                            <i class="fas fa-redo"></i>
+                            <i class="fas fa-globe"></i>
                         </div>
-                        <h3 class="solution-title">手动跳转</h3>
-                        <p class="solution-desc">直接在当前页面尝试跳转</p>
-                        <button class="btn" id="directJumpBtn" style="background: linear-gradient(to right, #4cc9f0, #4895ef);">
-                            <i class="fas fa-external-link-alt"></i> 直接访问
-                        </button>
+                        <h3 class="solution-title">其他浏览器</h3>
+                        <p class="solution-desc">直接跳转到目标链接，不会触发弹窗</p>
+                        <div class="status-value" id="browserStatus">直接跳转</div>
                     </div>
                 </div>
                 
                 <div class="tech-details">
-                    <h3><i class="fas fa-code"></i> 技术实现代码</h3>
-                    <p>以下为实现微信自动弹窗的核心代码：</p>
+                    <h3><i class="fas fa-code"></i> 修复的核心代码</h3>
+                    <p>以下为解决自动触发问题的关键代码：</p>
                     
-                    <pre>// 创建下载函数
-function triggerWechatPopup() {
-  // 创建虚拟下载链接
-  const downloadLink = document.createElement('a');
-  
-  // 设置下载属性和文件名
-  downloadLink.href = `data:application/octet-stream;base64,${btoa('wechat-trigger')}`;
-  downloadLink.download = 'open_in_browser.jumper';
-  
-  // 设置样式隐藏元素
-  downloadLink.style.display = 'none';
-  
-  // 添加到DOM
-  document.body.appendChild(downloadLink);
-  
-  // 模拟点击触发下载
-  downloadLink.click();
-  
-  // 清理DOM
-  document.body.removeChild(downloadLink);
-  
-  // 显示模拟弹窗（仅用于演示）
-  showWechatPopup();
+                    <pre>// 更可靠的微信环境检测
+function isWechatBrowser() {
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.indexOf('micromessenger') !== -1;
 }
 
-// 页面加载时自动触发
-window.addEventListener('DOMContentLoaded', () => {
+// 修复的触发函数
+function triggerWechatPopup() {
+  try {
+    // 创建虚拟下载链接
+    const downloadLink = document.createElement('a');
+    
+    // 使用无法识别的文件类型
+    downloadLink.href = 'data:application/octet-stream;base64,' + btoa('wechat-jumper');
+    downloadLink.download = 'open_in_browser.bin';
+    
+    // 添加到DOM并触发点击
+    document.body.appendChild(downloadLink);
+    const event = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    downloadLink.dispatchEvent(event);
+    
+    // 清理DOM
+    setTimeout(() => {
+      document.body.removeChild(downloadLink);
+    }, 1000);
+    
+    return true;
+  } catch (e) {
+    console.error('触发失败:', e);
+    return false;
+  }
+}
+
+// 页面加载后立即触发
+window.addEventListener('load', function() {
   if (isWechatBrowser()) {
-    setTimeout(triggerWechatPopup, 3000);
+    // 添加延迟确保微信环境完全加载
+    setTimeout(() => {
+      const success = triggerWechatPopup();
+      if (success) {
+        updateStatus('triggerStatus', '已触发', 'ok');
+      } else {
+        updateStatus('triggerStatus', '触发失败', 'warn');
+      }
+    }, 1500);
   }
 });</pre>
                 </div>
@@ -661,41 +644,48 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
         
         <div class="footer">
-            <p><i class="fas fa-shield-alt"></i> 微信自动弹窗跳转方案 &copy; 2023 | 技术实现：下载函数触发微信内置弹窗</p>
-        </div>
-    </div>
-    
-    <div class="wechat-popup" id="wechatPopup">
-        <div class="popup-header">
-            <div class="popup-icon">
-                <i class="fab fa-weixin"></i>
-            </div>
-            <div class="popup-title">微信提示</div>
-        </div>
-        <div class="popup-content">
-            微信内无法下载此文件，请在浏览器中打开后下载
-        </div>
-        <div class="popup-buttons">
-            <button class="popup-btn popup-cancel" id="popupCancel">取消</button>
-            <button class="popup-btn popup-confirm" id="popupConfirm">允许</button>
+            <p><i class="fas fa-shield-alt"></i> 微信自动弹窗跳转方案 &copy; 2023 | 修复版</p>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const countdownElement = document.getElementById('countdown');
-            const countdownValue = document.getElementById('countdownValue');
+            // 获取DOM元素
             const triggerBtn = document.getElementById('triggerBtn');
-            const directJumpBtn = document.getElementById('directJumpBtn');
-            const shareBtn = document.getElementById('shareBtn');
-            const saveQrBtn = document.getElementById('saveQrBtn');
             const targetUrlElement = document.getElementById('targetUrl');
-            const wechatPopup = document.getElementById('wechatPopup');
-            const popupCancel = document.getElementById('popupCancel');
-            const popupConfirm = document.getElementById('popupConfirm');
+            const wechatStatus = document.getElementById('wechatStatus');
+            const wechatStatusIcon = document.getElementById('wechatStatusIcon');
+            const triggerStatus = document.getElementById('triggerStatus');
+            const triggerStatusIcon = document.getElementById('triggerStatusIcon');
+            const redirectStatus = document.getElementById('redirectStatus');
+            const redirectStatusIcon = document.getElementById('redirectStatusIcon');
+            const androidStatus = document.getElementById('androidStatus');
+            const iosStatus = document.getElementById('iosStatus');
+            const browserStatus = document.getElementById('browserStatus');
             
-            let count = 3;
             let targetUrl = '';
+            
+            // 更新状态函数
+            function updateStatus(elementId, text, status) {
+                const element = document.getElementById(elementId);
+                const icon = document.getElementById(elementId + 'Icon');
+                
+                if (element) element.textContent = text;
+                if (icon) {
+                    // 重置类
+                    icon.className = 'status-icon';
+                    
+                    if (status === 'ok') {
+                        icon.classList.add('ok');
+                        icon.innerHTML = '<i class="fas fa-check"></i>';
+                    } else if (status === 'warn') {
+                        icon.classList.add('warn');
+                        icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    } else if (status === 'loading') {
+                        icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
+                    }
+                }
+            }
             
             // 解析URL参数
             function getQueryParam(name) {
@@ -709,12 +699,86 @@ window.addEventListener('DOMContentLoaded', () => {
                 return ua.indexOf('micromessenger') !== -1;
             }
             
-            // 获取目标URL
-            function initTargetUrl() {
+            // 检测设备类型
+            function detectDevice() {
+                const ua = navigator.userAgent.toLowerCase();
+                const isAndroid = ua.indexOf('android') > -1 || ua.indexOf('adr') > -1;
+                const isIOS = /iphone|ipad|ipod/.test(ua);
+                
+                if (isAndroid) androidStatus.textContent = '检测到安卓设备';
+                if (isIOS) iosStatus.textContent = '检测到iOS设备';
+                
+                if (!isWechatBrowser()) {
+                    browserStatus.textContent = '检测到非微信浏览器';
+                }
+            }
+            
+            // 触发微信下载弹窗
+            function triggerWechatPopup() {
+                updateStatus('triggerStatus', '触发中...', 'loading');
+                
+                try {
+                    // 创建虚拟下载链接
+                    const downloadLink = document.createElement('a');
+                    
+                    // 使用无法识别的文件类型
+                    downloadLink.href = 'data:application/octet-stream;base64,' + btoa('wechat-jumper-' + Date.now());
+                    downloadLink.download = 'open_in_browser.bin';
+                    downloadLink.style.display = 'none';
+                    
+                    // 添加到DOM
+                    document.body.appendChild(downloadLink);
+                    
+                    // 使用更可靠的方式触发点击
+                    const event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    
+                    downloadLink.dispatchEvent(event);
+                    
+                    // 清理DOM
+                    setTimeout(() => {
+                        document.body.removeChild(downloadLink);
+                    }, 1000);
+                    
+                    updateStatus('triggerStatus', '已触发', 'ok');
+                    return true;
+                } catch (e) {
+                    console.error('触发失败:', e);
+                    updateStatus('triggerStatus', '触发失败', 'warn');
+                    return false;
+                }
+            }
+            
+            // 尝试直接跳转
+            function attemptRedirect() {
+                if (targetUrl) {
+                    updateStatus('redirectStatus', '跳转中...', 'loading');
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 500);
+                }
+            }
+            
+            // 初始化
+            function init() {
+                // 检测环境并更新状态
+                if (isWechatBrowser()) {
+                    updateStatus('wechatStatus', '微信环境中', 'ok');
+                } else {
+                    updateStatus('wechatStatus', '非微信环境', 'warn');
+                }
+                
+                // 检测设备类型
+                detectDevice();
+                
+                // 解析目标URL
                 let url = getQueryParam('url');
                 
                 if (!url) {
-                    url = "https://github.com"; // 默认URL
+                    url = "https://github.com";
                     targetUrlElement.innerHTML = "未检测到URL参数，使用默认链接: <br><strong>" + url + "</strong>";
                 } else {
                     try {
@@ -725,100 +789,37 @@ window.addEventListener('DOMContentLoaded', () => {
                     targetUrlElement.innerHTML = "目标链接: <br><strong>" + url + "</strong>";
                 }
                 
-                return url;
-            }
-            
-            // 初始化
-            targetUrl = initTargetUrl();
-            
-            // 生成二维码
-            if (targetUrl) {
-                new QRCode(document.getElementById("qrcode"), {
-                    text: targetUrl,
-                    width: 180,
-                    height: 180,
-                    colorDark : "#1a2980",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-            }
-            
-            // 显示微信弹窗（模拟）
-            function showWechatPopup() {
-                wechatPopup.classList.add('visible');
+                targetUrl = url;
                 
-                // 自动关闭弹窗
-                setTimeout(() => {
-                    wechatPopup.classList.remove('visible');
-                }, 5000);
-            }
-            
-            // 触发微信下载弹窗
-            function triggerWechatPopup() {
-                // 创建虚拟下载链接
-                const downloadLink = document.createElement('a');
-                downloadLink.href = `data:application/octet-stream;base64,${btoa('wechat-trigger')}`;
-                downloadLink.download = 'open_in_browser.jumper';
-                downloadLink.style.display = 'none';
-                
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // 显示模拟弹窗
-                showWechatPopup();
-            }
-            
-            // 尝试直接跳转
-            function attemptRedirect() {
+                // 生成二维码
                 if (targetUrl) {
-                    window.location.href = targetUrl;
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: targetUrl,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#1a2980",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
                 }
-            }
-            
-            // 倒计时函数
-            function startCountdown() {
-                if (!isWechatBrowser()) return;
                 
-                const timer = setInterval(() => {
-                    count--;
-                    countdownElement.textContent = count;
-                    countdownValue.textContent = count;
-                    
-                    if (count <= 0) {
-                        clearInterval(timer);
-                        triggerWechatPopup();
-                    }
-                }, 1000);
+                // 非微信环境直接跳转
+                if (!isWechatBrowser()) {
+                    updateStatus('redirectStatus', '即将跳转', 'ok');
+                    setTimeout(attemptRedirect, 1500);
+                } else {
+                    // 微信环境自动触发
+                    updateStatus('redirectStatus', '等待微信弹窗', 'loading');
+                    setTimeout(triggerWechatPopup, 1000);
+                }
             }
             
             // 事件监听
             triggerBtn.addEventListener('click', triggerWechatPopup);
-            directJumpBtn.addEventListener('click', attemptRedirect);
             
-            shareBtn.addEventListener('click', function() {
-                alert("在实际应用中，这里会调用Web Share API分享当前页面链接");
-            });
-            
-            saveQrBtn.addEventListener('click', function() {
-                alert("在实际应用中，这里会下载二维码图片");
-            });
-            
-            popupCancel.addEventListener('click', function() {
-                wechatPopup.classList.remove('visible');
-            });
-            
-            popupConfirm.addEventListener('click', function() {
-                wechatPopup.classList.remove('visible');
-                attemptRedirect();
-            });
-            
-            // 启动倒计时
-            startCountdown();
+            // 启动初始化
+            init();
         });
     </script>
 </body>
 </html>
-
-
-
