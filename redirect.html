@@ -3,27 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>跳转中…</title>
+<title>跳转提示</title>
 <style>
-body { font-family: "Segoe UI", sans-serif; background:#f5f6fa; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; text-align:center;}
-.container { background:white; padding:30px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width:480px;}
+body { font-family: "Segoe UI", sans-serif; background:#f5f6fa; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; text-align:center; }
+.container { background:white; padding:30px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width:480px; position: relative;}
 h2 { color:#333; margin-bottom:16px;}
 p { color:#555; line-height:1.5;}
-button,a.btn { padding:12px 20px; border-radius:12px; margin:8px; border:none; font-size:16px; cursor:pointer; text-decoration:none;}
-button.primary, a.btn.primary { background:#4CAF50; color:white;}
-button.secondary, a.btn.secondary { background:#2196F3; color:white;}
-#qrcode img { margin-top:12px; border-radius:12px;}
-#panel { display:none; }
+#guider { position:absolute; top:20px; right:20px; display:flex; flex-direction:column; align-items:center; }
+.triangle { width: 12px; height: 12px; background:#3AB2A7; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: bounce 1s infinite alternate; margin-bottom:4px; }
+@keyframes bounce { 0%{transform: translateY(0);} 100%{transform: translateY(-6px);} }
+.tips { background:#3AB2A7; color:#fff; font-size:0.8em; padding:6px 10px; border-radius:10px; text-align:center; line-height:1.2; }
+#panel { margin-top:20px; }
+#panel p { margin:8px 0; }
+button.copyBtn { padding:12px 20px; border-radius:12px; border:none; font-size:16px; cursor:pointer; background:#2196F3; color:white; }
 </style>
 </head>
 <body>
 <div class="container">
-    <h2 id="title">跳转中…</h2>
-    <p id="desc">请点击下方按钮在浏览器打开</p>
+    <h2>微信/QQ 内无法直接打开</h2>
+    <p>请点击右上角选择“在浏览器中打开”</p>
+
+    <div id="guider">
+        <div class="triangle"></div>
+        <div class="tips">点击右上角<br/>选择“浏览器中打开”</div>
+    </div>
+
     <div id="panel">
-        <a id="openBtn" class="btn primary" target="_blank">点击打开链接</a>
-        <button id="copyBtn" class="btn secondary">复制链接</button>
-        <p>目标链接：<code id="urlBox"></code></p>
+        <p>复制链接，前往浏览器粘贴打开：</p>
+        <p><code id="urlBox"></code></p>
+        <button class="copyBtn" id="copyBtn">一键复制链接</button>
         <div id="qrcode"></div>
     </div>
 </div>
@@ -31,41 +39,22 @@ button.secondary, a.btn.secondary { background:#2196F3; color:white;}
 <script>
 // 获取目标链接
 function getQueryParam(name){return new URLSearchParams(window.location.search).get(name);}
-const target = getQueryParam('t')?decodeURIComponent(getQueryParam('t')):null;
-const title=document.getElementById('title');
-const desc=document.getElementById('desc');
-const panel=document.getElementById('panel');
+const target = getQueryParam('t') ? decodeURIComponent(getQueryParam('t')) : null;
 const urlBox=document.getElementById('urlBox');
-const openBtn=document.getElementById('openBtn');
 const copyBtn=document.getElementById('copyBtn');
 const qrcode=document.getElementById('qrcode');
 
-const ua = navigator.userAgent.toLowerCase();
-const isWx = ua.indexOf('micromessenger') > -1;
-const isQQ = ua.indexOf('qq') > -1;
-
-if(!target){
-    title.textContent='未指定跳转目标';
-    desc.textContent='缺少参数 t';
-}else{
+if(target){
     urlBox.textContent = target;
-    openBtn.href = target;
-    // QR code备用
+    // 生成二维码备用
     qrcode.innerHTML = `<img width="200" height="200" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(target)}" alt="QR Code">`;
 
-    if(isWx || isQQ){
-        title.textContent='微信/QQ 内无法直接打开';
-        desc.textContent='请点击右上角选择“在浏览器中打开”';
-        panel.style.display='block';
-    }else{
-        // 非微信/QQ直接跳转
-        setTimeout(()=>{window.location.href = target;},500);
-    }
-
     copyBtn.onclick = async ()=>{
-        try{ await navigator.clipboard.writeText(target); alert('已复制到剪贴板'); }
+        try{ await navigator.clipboard.writeText(target); alert('已复制到剪贴板，请在浏览器粘贴打开'); }
         catch{ alert('复制失败，请手动复制'); }
     };
+}else{
+    urlBox.textContent = '未指定目标链接';
 }
 </script>
 </body>
