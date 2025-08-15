@@ -1,107 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>跳转链接生成器</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; padding: 20px; max-width: 720px; margin: auto; }
-  h2 { text-align: center; margin-bottom: 12px; }
-  label { display:block; margin:12px 0 6px; font-weight:600; }
-  input { width:100%; padding:10px; font-size:16px; box-sizing:border-box; border:1px solid #ddd; border-radius:8px; }
-  .row { display:flex; gap:10px; align-items:center; }
-  .row > * { flex: 1 1 auto; }
-  button { padding:10px 14px; font-size:16px; border:none; border-radius:8px; background:#4CAF50; color:#fff; cursor:pointer; }
-  button.secondary { background:#2196F3; }
-  button:active { transform: translateY(1px); }
-  #result { margin-top:18px; }
-  code { display:block; background:#f6f8fa; padding:10px; border-radius:8px; word-break:break-all; }
-  small{color:#666}
+body { font-family: Arial, sans-serif; padding: 20px; }
+input, button { padding: 8px; font-size: 16px; margin: 5px 0; width: 100%; }
+#result { margin-top: 10px; padding: 8px; border: 1px solid #ccc; word-break: break-all; }
+.copy-btn { background: #4CAF50; color: white; border: none; cursor: pointer; padding: 8px; }
 </style>
 </head>
 <body>
-  <h2>跳转链接生成器</h2>
 
-  <label for="sink">你的短链（sink）前缀</label>
-  <input id="sink" placeholder="例如：https://sink.example/ 或 https://s.xx/">
+<h2>GitHub Pages 跳转链接生成器</h2>
+<p>请输入长网址或完整短链接：</p>
+<input type="text" id="inputUrl" placeholder="例如：https://zzmm.xx.kg/bp56q4 或 https://example.com/xxx">
 
-  <label for="target">原始目标链接（很长的 URL）</label>
-  <input id="target" placeholder="例如：https://example.com/very/long/path?with=params">
+<button onclick="generate()">生成跳转链接</button>
 
-  <div class="row" style="margin-top:12px;">
-    <button id="gen">生成 GitHub 跳转链接</button>
-    <button id="clear" class="secondary" type="button">清空</button>
-  </div>
-
-  <div id="result" style="display:none;">
-    <p>生成的链接（前缀保留 <code>https://scy99527.github.io/redirect.html?t=</code>）：</p>
-    <code id="finalLink"></code>
-    <div class="row" style="margin-top:8px;">
-      <button id="copy">一键复制</button>
-      <a id="test" target="_blank" style="text-decoration:none;">
-        <button class="secondary" type="button">新窗口测试</button>
-      </a>
-    </div>
-    <p><small>说明：这里将你的原始长链先变为 <b>sink 短链</b>，再作为 <code>t=</code> 参数放入 GitHub 跳转页。</small></p>
-  </div>
+<div id="resultContainer" style="display:none;">
+    <p>生成的跳转链接：</p>
+    <div id="result"></div>
+    <button class="copy-btn" onclick="copyLink()">一键复制</button>
+</div>
 
 <script>
-  const sinkEl   = document.getElementById('sink');
-  const targetEl = document.getElementById('target');
-  const genBtn   = document.getElementById('gen');
-  const clearBtn = document.getElementById('clear');
-  const result   = document.getElementById('result');
-  const finalEl  = document.getElementById('finalLink');
-  const copyBtn  = document.getElementById('copy');
-  const testA    = document.getElementById('test');
-
-  function normalizePrefix(p){
-    if(!p) return '';
-    return p.endsWith('/') ? p : (p + '/');
-  }
-
-  genBtn.onclick = () => {
-    const sinkPrefix = normalizePrefix(sinkEl.value.trim());
-    const target = targetEl.value.trim();
-
-    if(!sinkPrefix){
-      alert('请填写你的 sink 短链前缀');
-      return;
+function generate() {
+    let input = document.getElementById("inputUrl").value.trim();
+    if (!input) {
+        alert("请输入一个网址！");
+        return;
     }
-    if(!target){
-      alert('请填写原始目标链接');
-      return;
-    }
+    // 编码URL
+    let encodedUrl = encodeURIComponent(input);
+    let finalUrl = `https://scy99527.github.io/sink.html?url=${encodedUrl}`;
 
-    // 1) 先把原始长链编码，拼到 sink 前缀后面，形成你的短链
-    const sinkShort = sinkPrefix + encodeURIComponent(target);
+    document.getElementById("result").textContent = finalUrl;
+    document.getElementById("resultContainer").style.display = "block";
+}
 
-    // 2) 再把 sink 短链作为 t= 的值（再次编码）放进 GitHub 跳转页
-    const ghBase = 'https://scy99527.github.io/redirect.html';
-    const final  = `${ghBase}?t=${encodeURIComponent(sinkShort)}`;
-
-    finalEl.textContent = final;
-    testA.href = final;
-    result.style.display = 'block';
-  };
-
-  copyBtn.onclick = async () => {
-    const text = finalEl.textContent;
-    try {
-      await navigator.clipboard.writeText(text);
-      copyBtn.textContent = '已复制';
-      setTimeout(()=>copyBtn.textContent='一键复制', 1500);
-    } catch {
-      alert('复制失败，请手动选择复制');
-    }
-  };
-
-  clearBtn.onclick = () => {
-    sinkEl.value = '';
-    targetEl.value = '';
-    result.style.display = 'none';
-    finalEl.textContent = '';
-  };
+function copyLink() {
+    let text = document.getElementById("result").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("已复制到剪贴板！");
+    }).catch(err => {
+        alert("复制失败：" + err);
+    });
+}
 </script>
+
 </body>
 </html>
