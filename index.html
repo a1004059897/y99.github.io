@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信自动弹窗跳转方案</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --wechat-green: #07C160;
+            --wechat-dark: #1A1A1A;
+            --wechat-light: #F8F8F8;
+            --primary: #4361ee;
+            --accent: #4895ef;
+            --warning: #f72585;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(7, 193, 96, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(67, 97, 238, 0.1) 0%, transparent 40%);
+            z-index: -1;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .header {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: 100% 100%;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            position: relative;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--wechat-green), #06AD56);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 20px;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(7, 193, 96, 0.4);
+        }
+        
+        .card-title {
+            color: var(--wechat-dark);
+            font-size: 1.8rem;
+        }
+        
+        .card-title small {
+            display: block;
+            font-size: 1rem;
+            color: #666;
+            margin-top: 8px;
+            font-weight: normal;
+        }
+        
+        .card-content {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to right, var(--wechat-green), #06AD56);
+            color: white;
+            padding: 16px 45px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            margin: 15px 0;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 7px 20px rgba(7, 193, 96, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(7, 193, 96, 0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(2px);
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255,255,255,0.3);
+            transform: rotate(25deg);
+            transition: all 0.6s;
+        }
+        
+        .btn:hover::after {
+            left: 120%;
+        }
+        
+        .url-display {
+            background: #f0f8ff;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent);
+            text-align: left;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #1a2980;
+        }
+        
+        .url-display i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .countdown {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--warning);
+            margin: 25px 0;
+            background: rgba(247, 37, 133, 0.1);
+            padding: 20px 35px;
+            border-radius: 15px;
+            display: inline-block;
+            min-width: 220px;
+            border: 2px dashed var(--warning);
+            box-shadow: 0 5px 15px rgba(247, 37, 133, 0.2);
+        }
+        
+        .qr-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin: 30px 0;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            min-width: 240px;
+            text-align: center;
+        }
+        
+        .qr-code h3 {
+            margin-bottom: 15px;
+            color: #1a2980;
+        }
+        
+        #qrcode {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .instructions {
+            flex: 1;
+            min-width: 280px;
+            text-align: left;
+            background: #f9f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .instructions h3 {
+            color: #1a2980;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .instructions ol {
+            padding-left: 25px;
+            line-height: 1.9;
+            font-size: 1.1rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+        
+        .instructions li strong {
+            color: var(--primary);
+        }
+        
+        .warning {
+            background: #fff9db;
+            border-left: 5px solid #ffd43b;
+            padding: 25px;
+            margin: 35px 0;
+            border-radius: 0 15px 15px 0;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .warning h3 {
+            color: #d35400;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+        }
+        
+        .warning p {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #7e5109;
+        }
+        
+        .solution-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .solution-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .solution-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), #3f37c9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .solution-title {
+            font-size: 1.5rem;
+            color: #1a2980;
+            margin-bottom: 15px;
+        }
+        
+        .solution-desc {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .tech-details {
+            background: #e8f4f8;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .tech-details h3 {
+            color: #1a2980;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .tech-details pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .card {
+                padding: 25px 20px;
+            }
+            
+            .solution-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .countdown {
+                font-size: 2rem;
+                padding: 15px 25px;
+            }
+            
+            .btn {
+                padding: 14px 35px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .wechat-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            width: 300px;
+            z-index: 1000;
+            transform: translateY(150%);
+            transition: transform 0.5s ease;
+        }
+        
+        .wechat-popup.visible {
+            transform: translateY(0);
+        }
+        
+        .popup-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .popup-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--wechat-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .popup-content {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .popup-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .popup-cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .popup-confirm {
+            background: var(--wechat-green);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fab fa-weixin"></i> 微信自动弹窗跳转方案</h1>
+            <p>利用微信内置弹窗机制，实现一键跳转浏览器</p>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="card-title">
+                        下载函数触发微信弹窗
+                        <small>安卓微信环境下自动触发浏览器选择</small>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <p>本方案利用微信安卓版不支持下载功能的特点，当页面加载时自动执行下载函数，触发微信内置的"在浏览器中打开"提示。</p>
+                    
+                    <div class="url-display">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span id="targetUrl">正在解析目标链接...</span>
+                    </div>
+                    
+                    <div class="countdown" id="countdown">3</div>
+                    
+                    <p>系统将在 <strong id="countdownValue">3</strong> 秒后自动触发微信弹窗</p>
+                    <button class="btn pulse" id="triggerBtn">
+                        <i class="fas fa-bolt"></i> 立即触发微信弹窗
+                    </button>
+                </div>
+                
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <h3><i class="fas fa-qrcode"></i> 扫描二维码</h3>
+                        <div id="qrcode"></div>
+                        <p style="margin-top: 15px; color: #666;">在其他浏览器中打开</p>
+                    </div>
+                    
+                    <div class="instructions">
+                        <h3><i class="fas fa-cogs"></i> 技术原理</h3>
+                        <ol>
+                            <li>页面加载时创建虚拟下载链接</li>
+                            <li>触发微信内置下载功能</li>
+                            <li>微信安卓版不支持下载</li>
+                            <li>自动弹出"在浏览器中打开"提示</li>
+                            <li>用户点击"允许"后跳转至浏览器</li>
+                            <li>在浏览器中打开目标链接</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="warning">
+                    <h3><i class="fas fa-info-circle"></i> 注意事项</h3>
+                    <p>该方案在微信安卓版中效果最佳，iOS版微信可能会直接下载文件。如未自动触发弹窗，请手动点击上方按钮。</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #4361ee, #3f37c9);">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="card-title">
+                        备选跳转方案
+                        <small>确保在各种环境下都能成功跳转</small>
+                    </div>
+                </div>
+                
+                <div class="solution-section">
+                    <div class="solution-card">
+                        <div class="solution-icon">
+                            <i class="fas fa-share-square"></i>
+                        </div>
+                        <h3 class="solution-title">分享跳转</h3>
+                        <p class="solution-desc">将链接分享到其他应用打开</p>
+                        <button class="btn" id="shareBtn" style="background: linear-gradient(to right, #4361ee, #3f37c9);">
+                            <i class="fas fa-share"></i> 分享链接
+                        </button>
+                    </div>
+                    
+                    <div class="solution-card">
+                        <div class="solution-icon">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        <h3 class="solution-title">扫码打开</h3>
+                        <p class="solution-desc">使用系统相机扫描二维码</p>
+                        <button class="btn" id="saveQrBtn" style="background: linear-gradient(to right, #f72585, #b5179e);">
+                            <i class="fas fa-download"></i> 保存二维码
+                        </button>
+                    </div>
+                    
+                    <div class="solution-card">
+                        <div class="solution-icon">
+                            <i class="fas fa-redo"></i>
+                        </div>
+                        <h3 class="solution-title">手动跳转</h3>
+                        <p class="solution-desc">直接在当前页面尝试跳转</p>
+                        <button class="btn" id="directJumpBtn" style="background: linear-gradient(to right, #4cc9f0, #4895ef);">
+                            <i class="fas fa-external-link-alt"></i> 直接访问
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tech-details">
+                    <h3><i class="fas fa-code"></i> 技术实现代码</h3>
+                    <p>以下为实现微信自动弹窗的核心代码：</p>
+                    
+                    <pre>// 创建下载函数
+function triggerWechatPopup() {
+  // 创建虚拟下载链接
+  const downloadLink = document.createElement('a');
+  
+  // 设置下载属性和文件名
+  downloadLink.href = `data:application/octet-stream;base64,${btoa('wechat-trigger')}`;
+  downloadLink.download = 'open_in_browser.jumper';
+  
+  // 设置样式隐藏元素
+  downloadLink.style.display = 'none';
+  
+  // 添加到DOM
+  document.body.appendChild(downloadLink);
+  
+  // 模拟点击触发下载
+  downloadLink.click();
+  
+  // 清理DOM
+  document.body.removeChild(downloadLink);
+  
+  // 显示模拟弹窗（仅用于演示）
+  showWechatPopup();
+}
+
+// 页面加载时自动触发
+window.addEventListener('DOMContentLoaded', () => {
+  if (isWechatBrowser()) {
+    setTimeout(triggerWechatPopup, 3000);
+  }
+});</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-shield-alt"></i> 微信自动弹窗跳转方案 &copy; 2023 | 技术实现：下载函数触发微信内置弹窗</p>
+        </div>
+    </div>
+    
+    <div class="wechat-popup" id="wechatPopup">
+        <div class="popup-header">
+            <div class="popup-icon">
+                <i class="fab fa-weixin"></i>
+            </div>
+            <div class="popup-title">微信提示</div>
+        </div>
+        <div class="popup-content">
+            微信内无法下载此文件，请在浏览器中打开后下载
+        </div>
+        <div class="popup-buttons">
+            <button class="popup-btn popup-cancel" id="popupCancel">取消</button>
+            <button class="popup-btn popup-confirm" id="popupConfirm">允许</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const countdownElement = document.getElementById('countdown');
+            const countdownValue = document.getElementById('countdownValue');
+            const triggerBtn = document.getElementById('triggerBtn');
+            const directJumpBtn = document.getElementById('directJumpBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const saveQrBtn = document.getElementById('saveQrBtn');
+            const targetUrlElement = document.getElementById('targetUrl');
+            const wechatPopup = document.getElementById('wechatPopup');
+            const popupCancel = document.getElementById('popupCancel');
+            const popupConfirm = document.getElementById('popupConfirm');
+            
+            let count = 3;
+            let targetUrl = '';
+            
+            // 解析URL参数
+            function getQueryParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+            
+            // 检测微信浏览器
+            function isWechatBrowser() {
+                const ua = navigator.userAgent.toLowerCase();
+                return ua.indexOf('micromessenger') !== -1;
+            }
+            
+            // 获取目标URL
+            function initTargetUrl() {
+                let url = getQueryParam('url');
+                
+                if (!url) {
+                    url = "https://github.com"; // 默认URL
+                    targetUrlElement.innerHTML = "未检测到URL参数，使用默认链接: <br><strong>" + url + "</strong>";
+                } else {
+                    try {
+                        url = decodeURIComponent(url);
+                    } catch(e) {
+                        console.error("URL解码错误", e);
+                    }
+                    targetUrlElement.innerHTML = "目标链接: <br><strong>" + url + "</strong>";
+                }
+                
+                return url;
+            }
+            
+            // 初始化
+            targetUrl = initTargetUrl();
+            
+            // 生成二维码
+            if (targetUrl) {
+                new QRCode(document.getElementById("qrcode"), {
+                    text: targetUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark : "#1a2980",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+            
+            // 显示微信弹窗（模拟）
+            function showWechatPopup() {
+                wechatPopup.classList.add('visible');
+                
+                // 自动关闭弹窗
+                setTimeout(() => {
+                    wechatPopup.classList.remove('visible');
+                }, 5000);
+            }
+            
+            // 触发微信下载弹窗
+            function triggerWechatPopup() {
+                // 创建虚拟下载链接
+                const downloadLink = document.createElement('a');
+                downloadLink.href = `data:application/octet-stream;base64,${btoa('wechat-trigger')}`;
+                downloadLink.download = 'open_in_browser.jumper';
+                downloadLink.style.display = 'none';
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // 显示模拟弹窗
+                showWechatPopup();
+            }
+            
+            // 尝试直接跳转
+            function attemptRedirect() {
+                if (targetUrl) {
+                    window.location.href = targetUrl;
+                }
+            }
+            
+            // 倒计时函数
+            function startCountdown() {
+                if (!isWechatBrowser()) return;
+                
+                const timer = setInterval(() => {
+                    count--;
+                    countdownElement.textContent = count;
+                    countdownValue.textContent = count;
+                    
+                    if (count <= 0) {
+                        clearInterval(timer);
+                        triggerWechatPopup();
+                    }
+                }, 1000);
+            }
+            
+            // 事件监听
+            triggerBtn.addEventListener('click', triggerWechatPopup);
+            directJumpBtn.addEventListener('click', attemptRedirect);
+            
+            shareBtn.addEventListener('click', function() {
+                alert("在实际应用中，这里会调用Web Share API分享当前页面链接");
+            });
+            
+            saveQrBtn.addEventListener('click', function() {
+                alert("在实际应用中，这里会下载二维码图片");
+            });
+            
+            popupCancel.addEventListener('click', function() {
+                wechatPopup.classList.remove('visible');
+            });
+            
+            popupConfirm.addEventListener('click', function() {
+                wechatPopup.classList.remove('visible');
+                attemptRedirect();
+            });
+            
+            // 启动倒计时
+            startCountdown();
+        });
+    </script>
+</body>
+</html>
+
+
+
