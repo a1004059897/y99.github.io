@@ -10,13 +10,11 @@ body {
     margin:0; padding:0;
     height:100vh; width:100vw; position:relative;
     overflow:hidden;
-    /* 动态淡彩虹背景 */
-    background: linear-gradient(270deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1);
+    background: linear-gradient(270deg, #e0e0e0, #f5f5f5, #dcdcdc, #f0f0f0);
     background-size: 1200% 1200%;
     animation: gradientBG 30s ease infinite;
 }
 
-/* 背景渐变动画 */
 @keyframes gradientBG {
     0%{background-position:0% 50%;}
     50%{background-position:100% 50%;}
@@ -28,7 +26,7 @@ body {
     display:flex; flex-direction:column; align-items:flex-end; z-index:100;
 }
 .triangle {
-    width:20px; height:20px; /* 放大箭头 */
+    width:20px; height:20px;
     background:#3AB2A7;
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     animation: bounce 1s infinite alternate;
@@ -59,16 +57,15 @@ body {
 h2 { margin:0 0 12px; color:#333; font-size:1.6em;}
 p { color:#555; line-height:1.5; margin-bottom:16px;}
 
-/* Q版小兔子logo */
+/* 简约单色logo */
 #logo {
     width:80px; height:80px;
     margin:12px auto;
     border-radius:16px;
-    background:#ff8a80;
+    background:#3AB2A7;
     display:flex; justify-content:center; align-items:center;
-    box-shadow:0 8px 15px rgba(0,0,0,0.2);
+    box-shadow:0 8px 15px rgba(0,0,0,0.1);
 }
-#logo svg{width:60px;height:60px;}
 
 /* 二维码缩小 */
 #qrcode img { margin-top:12px; width:150px; height:150px; border-radius:12px; }
@@ -90,18 +87,8 @@ code { background:#f0f4f8; padding:4px 8px; border-radius:8px; display:inline-bl
     <div class="tips">点击右上角<br/>选择“浏览器中打开”</div>
 </div>
 
-<div class="container">
-    <div id="logo">
-        <!-- Q版小兔子SVG -->
-        <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="#fff"/>
-            <ellipse cx="35" cy="45" rx="5" ry="10" fill="#ff8a80"/>
-            <ellipse cx="65" cy="45" rx="5" ry="10" fill="#ff8a80"/>
-            <circle cx="35" cy="45" r="2" fill="#000"/>
-            <circle cx="65" cy="45" r="2" fill="#000"/>
-            <path d="M40 65 Q50 75 60 65" stroke="#000" stroke-width="2" fill="none"/>
-        </svg>
-    </div>
+<div class="container" id="mainContainer">
+    <div id="logo"></div>
     <h2>微信/QQ 内无法直接打开</h2>
     <p>复制链接后请在浏览器中打开</p>
     <div id="panel">
@@ -112,22 +99,33 @@ code { background:#f0f4f8; padding:4px 8px; border-radius:8px; display:inline-bl
 </div>
 
 <script>
+function isWeChat(){return /MicroMessenger/i.test(navigator.userAgent);}
+function isQQ(){return /QQ/i.test(navigator.userAgent);}
+
 // 获取目标链接
 function getQueryParam(name){return new URLSearchParams(window.location.search).get(name);}
 const target = getQueryParam('t') ? decodeURIComponent(getQueryParam('t')) : null;
-const urlBox=document.getElementById('urlBox');
-const copyBtn=document.getElementById('copyBtn');
-const qrcode=document.getElementById('qrcode');
+
+const urlBox = document.getElementById('urlBox');
+const copyBtn = document.getElementById('copyBtn');
+const qrcode = document.getElementById('qrcode');
+const mainContainer = document.getElementById('mainContainer');
 
 if(target){
-    urlBox.textContent = target;
-    qrcode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(target)}" alt="QR Code">`;
-
-    copyBtn.onclick = async ()=>{
-        try{ await navigator.clipboard.writeText(target); alert('已复制到剪贴板，请在浏览器粘贴打开'); }
-        catch{ alert('复制失败，请手动复制'); }
-    };
-}else{
+    if(isWeChat() || isQQ()){
+        // 微信/QQ内显示提示UI
+        urlBox.textContent = target;
+        qrcode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(target)}" alt="QR Code">`;
+        copyBtn.onclick = async ()=>{
+            try{ await navigator.clipboard.writeText(target); alert('已复制到剪贴板，请在浏览器粘贴打开'); }
+            catch{ alert('复制失败，请手动复制'); }
+        };
+    } else {
+        // 浏览器直接跳转
+        window.location.href = target;
+        mainContainer.style.display='none'; // 浏览器跳转时隐藏容器
+    }
+} else{
     urlBox.textContent = '未指定目标链接';
 }
 </script>
