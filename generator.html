@@ -10,7 +10,6 @@ body {
     margin:0; padding:0;
     height:100vh; width:100vw; position:relative;
     overflow:hidden;
-    /* 动态彩虹渐变背景 */
     background: linear-gradient(270deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1);
     background-size: 1200% 1200%;
     animation: gradientBG 60s ease infinite;
@@ -21,7 +20,6 @@ body {
     100%{background-position:0% 50%;}
 }
 
-/* 中心容器 */
 .container {
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     background: rgba(255,255,255,0.85);
@@ -32,7 +30,6 @@ body {
 }
 @keyframes popIn {0%{transform:translate(-50%,-50%) scale(0.9); opacity:0;} 100%{transform:translate(-50%,-50%) scale(1); opacity:1;}}
 
-/* 动态渐变彩虹logo */
 #logo {
     width:80px; height:80px;
     margin:12px auto;
@@ -48,13 +45,11 @@ body {
     100%{background-position:0% 50%;}
 }
 
-/* 输入框 */
 input#inputURL {
     width: 100%; padding:10px 12px; font-size:16px; border-radius:12px; border:1px solid #ccc;
     margin-bottom:12px;
 }
 
-/* 按钮 */
 button.generateBtn, button.copyBtn, button.clearBtn {
     padding:12px 20px; border-radius:12px; border:none; font-size:16px; cursor:pointer;
     background: linear-gradient(90deg,#36D1DC,#5B86E5); color:white; transition:0.2s all;
@@ -63,7 +58,6 @@ button.generateBtn, button.copyBtn, button.clearBtn {
 button.generateBtn:hover, button.copyBtn:hover, button.clearBtn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 button.generateBtn:active, button.copyBtn:active, button.clearBtn:active { transform:translateY(0) scale(0.97); box-shadow:0 2px 8px rgba(0,0,0,0.2);}
 
-/* 输出区域 */
 #outputURL { word-break:break-all; background:#f0f4f8; padding:6px 10px; border-radius:8px; display:block; margin-bottom:8px; }
 
 h2 { margin:0 0 12px; color:#333; font-size:1.5em;}
@@ -76,8 +70,12 @@ p { color:#555; line-height:1.5; margin-bottom:16px;}
     <h2>生成跳转链接</h2>
     <p>请输入原始网址或短链接</p>
     <input type="text" id="inputURL" placeholder="https://example.com/yourlink">
-    <button class="generateBtn" id="generateBtn">生成跳转链接</button>
-    <button class="clearBtn" id="clearBtn">清空</button>
+    
+    <!-- 垂直排列按钮 -->
+    <div style="display:flex; flex-direction:column; align-items:center;">
+        <button class="generateBtn" id="generateBtn">生成跳转链接</button>
+        <button class="clearBtn" id="clearBtn">清空</button>
+    </div>
     
     <div id="panel" style="display:none;">
         <p><code id="outputURL"></code></p>
