@@ -3,125 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>跳转提示页面</title>
+<title>跳转提示</title>
 <style>
-html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;font-family:"Segoe UI",sans-serif;}
-body {background:#111; position:relative;}
-
-/* 粒子背景 */
-#particles {
-  position:absolute; top:0; left:0; width:100%; height:100%; z-index:0;
+body {
+    font-family: "Segoe UI", sans-serif;
+    margin:0; padding:0;
+    height:100vh; width:100vw; position:relative;
+    overflow:hidden;
+    /* 动态淡彩虹背景 */
+    background: linear-gradient(270deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1);
+    background-size: 1200% 1200%;
+    animation: gradientBG 30s ease infinite;
 }
 
-/* 渐变半透明卡片 */
+/* 背景渐变动画 */
+@keyframes gradientBG {
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+#guider {
+    position: fixed; top:12px; right:12px;
+    display:flex; flex-direction:column; align-items:flex-end; z-index:100;
+}
+.triangle {
+    width:20px; height:20px; /* 放大箭头 */
+    background:#3AB2A7;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    animation: bounce 1s infinite alternate;
+    margin-bottom:6px;
+    transform: translateX(-2px);
+}
+@keyframes bounce {0%{transform: translateY(0) translateX(-2px);} 100%{transform: translateY(-6px) translateX(-2px);}}
+.tips {
+    background:#3AB2A7;
+    color:white;
+    font-size:0.8em;
+    padding:6px 10px;
+    border-radius:10px;
+    text-align:center;
+    line-height:1.2;
+}
+
 .container {
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     background: rgba(255,255,255,0.85);
-    padding:30px; border-radius:20px; box-shadow:0 15px 30px rgba(0,0,0,0.2);
+    padding:30px; border-radius:20px; box-shadow:0 15px 30px rgba(0,0,0,0.15); 
     max-width:400px; width:90%; text-align:center;
     backdrop-filter: blur(10px);
-    z-index:10;
+    animation: popIn 0.6s ease;
 }
+@keyframes popIn {0%{transform:translate(-50%,-50%) scale(0.9); opacity:0;} 100%{transform:translate(-50%,-50%) scale(1); opacity:1;}}
 
-/* 科技风Q版小兔子logo */
+h2 { margin:0 0 12px; color:#333; font-size:1.6em;}
+p { color:#555; line-height:1.5; margin-bottom:16px;}
+
+/* Q版小兔子logo */
 #logo {
-    width:80px; height:80px; margin:12px auto;
+    width:80px; height:80px;
+    margin:12px auto;
+    border-radius:16px;
+    background:#ff8a80;
+    display:flex; justify-content:center; align-items:center;
+    box-shadow:0 8px 15px rgba(0,0,0,0.2);
 }
-#logo svg { width:100%; height:100%; }
+#logo svg{width:60px;height:60px;}
 
-/* 右上角提示箭头 */
-#guider {
-    position: fixed; top:5px; right:5px; display:flex; flex-direction:column; align-items:flex-end; z-index:20;
-}
-.triangle {
-    width:18px; height:18px; background:#3AB2A7; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    margin-bottom:6px; transform: translateX(-2px); animation:bounce 1s infinite alternate;
-}
-@keyframes bounce{0%{transform:translateY(0) translateX(-2px);}100%{transform:translateY(-6px) translateX(-2px);}}
-.tips {
-    background:#3AB2A7; color:white; font-size:0.8em; padding:6px 10px; border-radius:10px; text-align:center; line-height:1.2;
-}
+/* 二维码缩小 */
+#qrcode img { margin-top:12px; width:150px; height:150px; border-radius:12px; }
 
-/* 文案与按钮 */
-h2 { margin:0 0 12px; color:#333; font-size:1.5em; }
-p { color:#555; line-height:1.5; margin-bottom:16px; }
-button {
+/* 复制按钮 */
+button.copyBtn {
     padding:12px 20px; border-radius:12px; border:none; font-size:16px; cursor:pointer;
     background: linear-gradient(90deg,#36D1DC,#5B86E5); color:white; transition:0.2s all;
-    margin:6px 0; display:block; width:80%; margin-left:auto; margin-right:auto;
+    margin-bottom:8px;
 }
-button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-button:active{transform:translateY(0) scale(0.97); box-shadow:0 2px 8px rgba(0,0,0,0.2);}
-#outputURL{word-break:break-all; background:#f0f4f8; padding:6px 10px; border-radius:8px; display:block; margin-bottom:8px;}
+button.copyBtn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+button.copyBtn:active { transform:translateY(0) scale(0.97); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+code { background:#f0f4f8; padding:4px 8px; border-radius:8px; display:inline-block; word-break:break-all; font-size:0.9em;}
 </style>
 </head>
 <body>
-<canvas id="particles"></canvas>
-
 <div id="guider">
     <div class="triangle"></div>
-    <div class="tips">请点击右上角<br/>选择“浏览器中打开”</div>
+    <div class="tips">点击右上角<br/>选择“浏览器中打开”</div>
 </div>
 
 <div class="container">
     <div id="logo">
         <!-- Q版小兔子SVG -->
         <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="#ff8a80"/>
-            <ellipse cx="35" cy="45" rx="5" ry="10" fill="#fff"/>
-            <ellipse cx="65" cy="45" rx="5" ry="10" fill="#fff"/>
+            <circle cx="50" cy="50" r="40" fill="#fff"/>
+            <ellipse cx="35" cy="45" rx="5" ry="10" fill="#ff8a80"/>
+            <ellipse cx="65" cy="45" rx="5" ry="10" fill="#ff8a80"/>
             <circle cx="35" cy="45" r="2" fill="#000"/>
             <circle cx="65" cy="45" r="2" fill="#000"/>
             <path d="M40 65 Q50 75 60 65" stroke="#000" stroke-width="2" fill="none"/>
         </svg>
     </div>
-    <h2>微信/QQ 内无法打开</h2>
-    <p>请点击右上角“在浏览器中打开”，以继续访问</p>
-
-    <p id="outputURL">https://yourlink.com</p>
-    <button onclick="copyLink()">一键复制链接</button>
-    <button onclick="alert('请在浏览器中打开页面')">前往浏览器打开</button>
-    <p style="font-size:0.85em;color:#555;margin-top:6px;">复制后请在浏览器粘贴打开</p>
+    <h2>微信/QQ 内无法直接打开</h2>
+    <p>复制链接后请在浏览器中打开</p>
+    <div id="panel">
+        <p><code id="urlBox"></code></p>
+        <button class="copyBtn" id="copyBtn">一键复制链接</button>
+        <div id="qrcode"></div>
+    </div>
 </div>
 
 <script>
-// 粒子背景
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const particles = [];
-for(let i=0;i<100;i++){
-    particles.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        r: Math.random()*2+1,
-        dx: (Math.random()-0.5)*0.5,
-        dy: (Math.random()-0.5)*0.5
-    });
-}
-function animate(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    for(let p of particles){
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-        ctx.fillStyle="rgba(255,255,255,0.7)";
-        ctx.fill();
-        p.x+=p.dx; p.y+=p.dy;
-        if(p.x>canvas.width) p.x=0;
-        if(p.x<0) p.x=canvas.width;
-        if(p.y>canvas.height) p.y=0;
-        if(p.y<0) p.y=canvas.height;
-    }
-    requestAnimationFrame(animate);
-}
-animate();
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+// 获取目标链接
+function getQueryParam(name){return new URLSearchParams(window.location.search).get(name);}
+const target = getQueryParam('t') ? decodeURIComponent(getQueryParam('t')) : null;
+const urlBox=document.getElementById('urlBox');
+const copyBtn=document.getElementById('copyBtn');
+const qrcode=document.getElementById('qrcode');
 
-// 复制链接
-function copyLink(){
-    const link = document.getElementById('outputURL').textContent;
-    navigator.clipboard.writeText(link).then(()=>{alert('已复制到剪贴板，请在浏览器粘贴打开');});
+if(target){
+    urlBox.textContent = target;
+    qrcode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(target)}" alt="QR Code">`;
+
+    copyBtn.onclick = async ()=>{
+        try{ await navigator.clipboard.writeText(target); alert('已复制到剪贴板，请在浏览器粘贴打开'); }
+        catch{ alert('复制失败，请手动复制'); }
+    };
+}else{
+    urlBox.textContent = '未指定目标链接';
 }
 </script>
 </body>
