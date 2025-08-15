@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>跳转中...</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body { font-family: sans-serif; padding: 20px; text-align: center; max-width: 600px; margin: auto; }
+h2 { margin-top: 20px; }
+button, a.btn { padding: 10px 16px; margin: 8px; border: 1px solid #ccc; border-radius: 6px; display: inline-block; text-decoration: none; background: #f8f8f8; cursor: pointer; }
+a.btn { color: black; }
+code { background: #f5f5f5; padding: 2px 4px; border-radius: 4px; word-break: break-all; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<h2 id="status">正在尝试跳转...</h2>
+<div id="backup" style="display:none;">
+  <p>如果未自动跳转，请手动操作：</p>
+  <a id="directBtn" class="btn" target="_blank">在浏览器中打开</a>
+  <button id="copyBtn">复制链接</button>
+  <p>或长按识别二维码：</p>
+  <div id="qrcode"></div>
+  <p>目标链接：<code id="urlText"></code></p>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const target = params.get('t') ? decodeURIComponent(params.get('t')) : null;
+
+if(!target){
+  document.getElementById('status').textContent = '未指定跳转目标';
+} else {
+  document.getElementById('urlText').textContent = target;
+  document.getElementById('directBtn').href = target;
+
+  // 生成二维码
+  document.getElementById('qrcode').innerHTML =
+    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(target)}" alt="QR">`;
+
+  // 复制功能
+  document.getElementById('copyBtn').onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(target);
+      alert("已复制到剪贴板");
+    } catch(e) {
+      alert("复制失败，请手动长按复制");
+    }
+  };
+
+  const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+
+  if(isWeChat){
+    // 尝试触发微信的“在浏览器中打开”提示
+    const link = document.createElement('a');
+    link.href = target;
+    link.download = ''; 
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 2秒后显示备用界面
+    setTimeout(()=>{
+      document.getElementById('status').textContent = '未完成跳转';
+      document.getElementById('backup').style.display = 'block';
+    }, 2000);
+
+  } else {
+    // 非微信环境直接跳转
+    location.href = target;
+  }
+}
+</script>
+</body>
+</html>
